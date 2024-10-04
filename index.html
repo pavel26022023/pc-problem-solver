@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Problem Solver</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { color: #333; }
+        button { padding: 10px 20px; color: white; border: none; cursor: pointer; margin: 5px; }
+        button:hover { opacity: 0.8; }
+        .exit-button { background-color: red; }
+        .menu-button { background-color: green; }
+        .task, .profile { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Добро пожаловать на PC Problem Solver!</h1>
+        <p>Решайте задачи и улучшайте свои навыки по ПК.</p>
+        
+        <div id="menu">
+            <button class="menu-button" onclick="startGame()">Начать задание</button>
+            <button class="menu-button" onclick="viewProfile()">Просмотреть профиль</button>
+        </div>
+
+        <div id="task-container" class="task" style="display: none;"></div>
+        <div id="profile-container" class="profile" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Вопросы и варианты ответов
+        const questions = [
+            {
+                question: "Что делать, если компьютер не включается?",
+                options: ["Проверить кабель питания", "Убедиться, что монитор подключен", "Сбросить настройки BIOS"],
+                answer: 0
+            },
+            {
+                question: "Почему компьютер может перегреваться?",
+                options: ["Старые комплектующие", "Проблемы с драйверами", "Слишком низкий уровень заряда батареи"],
+                answer: 0
+            },
+            {
+                question: "Как решить проблему с отсутствием звука?",
+                options: ["Проверить динамики", "Обновить драйвера звука", "Перезагрузить компьютер"],
+                answer: 1
+            },
+            {
+                question: "Что делать, если компьютер зависает?",
+                options: ["Отключить все устройства", "Установить антивирус", "Проверить на наличие вредоносных программ"],
+                answer: 2
+            },
+            {
+                question: "Как улучшить производительность старого компьютера?",
+                options: ["Установить SSD", "Очистить систему от ненужных файлов", "Увеличить объем ОЗУ"],
+                answer: 0
+            }
+        ];
+
+        let experience = 0; // Начальный опыт
+        let level = 1; // Начальный уровень
+        let tasksCompleted = 0; // Количество пройденных заданий
+        let currentQuestionIndex = 0; // Индекс текущего вопроса
+        let userName = ""; // Имя пользователя
+
+        // Названия титулов
+        const titles = [
+            "Новичок", "Новичок", "Новичок", "Новичок", "Новичок", 
+            "Начинающий", "Начинающий", "Начинающий", "Начинающий", "Начинающий", 
+            "Ученик", "Ученик", "Ученик", "Ученик", "Ученик", 
+            "Специалист", "Специалист", "Специалист", "Специалист", "Специалист", 
+            "Мастер ПК", "Мастер ПК", "Мастер ПК", "Мастер ПК", "Мастер ПК", 
+            "Эксперт", "Эксперт", "Эксперт", "Эксперт", "Эксперт", 
+            "Гений", "Гений", "Гений", "Гений", "Гений", 
+            "Мастерство", "Мастерство", "Мастерство", "Мастерство", "Мастерство"
+        ];
+
+        // Загрузка данных пользователя
+        function loadUserData() {
+            experience = localStorage.getItem('experience') ? parseInt(localStorage.getItem('experience')) : 0;
+            level = localStorage.getItem('level') ? parseInt(localStorage.getItem('level')) : 1;
+            tasksCompleted = localStorage.getItem('tasksCompleted') ? parseInt(localStorage.getItem('tasksCompleted')) : 0;
+            userName = localStorage.getItem('userName') || ""; // Загрузка имени пользователя
+        }
+
+        // Сохранение данных пользователя
+        function saveUserData() {
+            localStorage.setItem('experience', experience);
+            localStorage.setItem('level', level);
+            localStorage.setItem('tasksCompleted', tasksCompleted);
+            localStorage.setItem('userName', userName); // Сохранение имени пользователя
+        }
+
+        // Функция для запуска игры
+        function startGame() {
+            loadUserData(); // Загрузка данных перед началом
+            currentQuestionIndex = 0; // Сброс индекса вопросов
+            shuffleArray(questions); // Перемешиваем вопросы
+            document.getElementById('menu').style.display = 'none'; // Скрыть меню
+            document.getElementById('profile-container').style.display = 'none'; // Скрыть профиль
+            document.getElementById('task-container').style.display = 'block'; // Показать контейнер с задачами
+            generateTask(); // Генерация первого задания
+        }
+
+        // Функция для перемешивания массива
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array; // Вернуть перемешанный массив
+        }
+
+        // Функция для генерации задания
+        function generateTask() {
+            if (currentQuestionIndex >= questions.length) {
+                alert("Вы прошли все доступные вопросы!");
+                endGame();
+                return;
+            }
+
+            const taskContainer = document.getElementById('task-container');
+            const currentQuestion = questions[currentQuestionIndex];
+            let optionsHTML = `<p>Вопрос ${currentQuestionIndex + 1}: ${currentQuestion.question}</p>`;
+            
+            // Перемешиваем варианты ответов
+            const shuffledOptions = shuffleArray(currentQuestion.options.map((option, index) => ({ text: option, index })));
+            shuffledOptions.forEach(({ text, index }) => {
+                optionsHTML += `<button class="menu-button" onclick="submitAnswer(${index})">${text}</button><br>`;
+            });
+
+            optionsHTML += `<button class="exit-button" onclick="endGame()">Выйти в главное меню</button>`;
+            taskContainer.innerHTML = optionsHTML;
+        }
+
+        // Функция для обработки ответа пользователя
+        function submitAnswer(selectedOption) {
+            const currentQuestion = questions[currentQuestionIndex];
+            if (selectedOption === currentQuestion.answer) {
+                experience += 20; // Начисляем 20 опыта за правильный ответ
+                tasksCompleted++;
+                alert("Правильно! Вы получили 20 опыта.");
+            } else {
+                alert("Неправильный ответ. Попробуйте снова!");
+            }
+
+            checkLevelUp();
+            currentQuestionIndex++; // Переход к следующему вопросу
+            generateTask(); // Генерация следующего задания
+            saveUserData(); // Сохранение данных после каждого ответа
+        }
+
+        // Проверка повышения уровня
+        function checkLevelUp() {
+            const requiredExperience = level * 100; // Уровень требует 100 * уровень опыта
+            if (experience >= requiredExperience) {
+                level++;
+                alert(`Поздравляем! Вы достигли уровня ${level}! Титул: ${getTitle()}`);
+            }
+        }
+
+        // Получение титула в зависимости от уровня
+        function getTitle() {
+            return titles[Math.floor((level - 1) / 10)];
+        }
+
+        // Функция для просмотра профиля
+        function viewProfile() {
+            loadUserData(); // Загрузка данных перед отображением профиля
+            const profileContainer = document.getElementById('profile-container');
+            profileContainer.style.display = 'block';
+            profileContainer.innerHTML = `
+                <h2>Профиль</h2>
+                <p>Имя: <input type="text" id="nameInput" placeholder="Введите ваше имя" value="${userName}" /></p>
+                <button class="menu-button" onclick="saveProfile()">Сохранить имя</button>
+                <p>Уровень: ${level}</p>
+                <p>Титул: ${getTitle()}</p>
+                <p>Опыт: ${experience}</p>
+                <p>Задания: ${tasksCompleted}</p>
+                <button class="exit-button" onclick="goBackToMenu()">Назад в меню</button>
+            `;
+            document.getElementById('task-container').style.display = 'none'; // Скрыть контейнер с задачами
+            document.getElementById('menu').style.display = 'none'; // Скрыть меню
+        }
+
+        // Функция для сохранения имени пользователя
+        function saveProfile() {
+            userName = document.getElementById('nameInput').value; // Получаем имя из поля ввода
+            saveUserData(); // Сохраняем данные пользователя
+            alert("Имя сохранено!");
+        }
+
+        // Функция для возврата в меню
+        function goBackToMenu() {
+            endGame(); // Вернуться в главное меню
+            document.getElementById('menu').style.display = 'block'; // Показать меню
+        }
+
+        // Функция для завершения игры
+        function endGame() {
+            document.getElementById('task-container').style.display = 'none'; // Скрыть контейнер с задачами
+            document.getElementById('profile-container').style.display = 'none'; // Скрыть профиль
+            document.getElementById('menu').style.display = 'block'; // Показать меню
+        }
+
+        // Инициализация данных при загрузке страницы
+        loadUserData();
+    </script>
+</body>
+</html>
